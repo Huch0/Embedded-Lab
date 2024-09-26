@@ -44,7 +44,8 @@ int main(void)
 
     // Relay Module
     // PD1, PD2
-    GPIOD_CRL &= 0xFFFFFF33;
+    GPIOD_CRL &= 0xFFFFF00F;
+    GPIOD_CRL |= 0xFFFFF33F;
 
     while (1)
     {
@@ -64,10 +65,11 @@ int main(void)
             GPIOD_BSRR |= 0x20004; // PD1 reset, PD2 set
             delay();
             delay();
+            GPIOD_BSRR |= 0x60000; // PD1 reset, PD2 reset
         }
         else if ((GPIOA_IDR & 0x01) == 0) // key 4
         {
-            GPIOD_BSRR |= 0x6; // PD1 set, PD2 set
+            GPIOD_BSRR |= 0x60000; // PD1 reset, PD2 reset
         }
     }
     return 0;
