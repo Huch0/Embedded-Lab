@@ -70,6 +70,7 @@ void SetSysClock(void)
         RCC->CFGR &= (uint32_t) ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
         RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLMULL4);
 
+        // 52 = 25 / 5 * 13 / 5 * 4
         RCC->CFGR2 &= (uint32_t) ~(RCC_CFGR2_PREDIV2 | RCC_CFGR2_PLL2MUL | RCC_CFGR2_PREDIV1 | RCC_CFGR2_PREDIV1SRC);
         RCC->CFGR2 |= (uint32_t)(RCC_CFGR2_PREDIV2_DIV5 | RCC_CFGR2_PLL2MUL13 | RCC_CFGR2_PREDIV1SRC_PLL2 | RCC_CFGR2_PREDIV1_DIV5);
         //@End of TODO - 1
@@ -112,7 +113,7 @@ void RCC_Enable(void)
     /*---------------------------- RCC Configuration -----------------------------*/
     /* GPIO RCC Enable  */
     /* UART Tx, Rx, MCO port */
-    RCC->APB2ENR |= (uint32_t)(RCC_APB2ENR_IOPAEN); // USART1_TX: PA9, USART1_RX: PA10, MCO: PA8
+    RCC->APB2ENR |= (uint32_t)(RCC_APB2ENR_IOPAEN | RCC_APB2ENR_AFIOEN); // USART1_TX: PA9, USART1_RX: PA10, MCO: PA8
     /* USART RCC Enable */
     RCC->APB2ENR |= (uint32_t)(RCC_APB2ENR_USART1EN); // USART1
     /* Button RCC Enable */
@@ -131,7 +132,7 @@ void PortConfiguration(void)
     // MCO: PA8 - Alternate function output Push-pull
     GPIOA->CRH |= (GPIO_CRH_CNF8_1 | GPIO_CRH_MODE8_1 | GPIO_CRH_MODE8_0); // speed?
     /* USART Pin Configuration */
-    GPIOA->CRH |= (GPIO_CRH_CNF9_1 | GPIO_CRH_MODE9_1 | GPIO_CRH_MODE9_0); // USART1_TX: PA9 // speed?
+    GPIOA->CRH |= (GPIO_CRH_CNF9_1 | GPIO_CRH_MODE9_1 | GPIO_CRH_MODE9_0 | GPIO_CRH_CNF10_1); // USART1_TX: PA9 , RX: PA10
 
     /* Reset(Clear) Port A CRL - PA0*/
     GPIOA->CRL &= ~(GPIO_CRL_CNF0 | GPIO_CRL_MODE0);
