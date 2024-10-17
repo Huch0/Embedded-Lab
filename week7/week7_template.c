@@ -1,4 +1,3 @@
-
 #include "stm32f10x.h"
 #include "stm32f10x_exti.h"
 #include "stm32f10x_gpio.h"
@@ -22,27 +21,20 @@ void sendDataUART1(uint16_t data);
 
 //---------------------------------------------------------------------------------------------------
 
-// mode == 0 -> A LED 물결 방향 변경 - 1->2->3->4
-// mode == 1 -> B LED 물결 방향 변경 - 4->3->2->1
 int mode = 0;
-
-// key3: send data to UART1
-int sending = 0;
+int usart_signal = 0;
 
 void RCC_Configure(void)
 {
     // TODO: Enable the APB2 peripheral clock using the function 'RCC_APB2PeriphClockCmd'
 
     /* UART TX/RX port clock enable */
-    // USART1_TX: PA9, USART1_RX: PA10
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 
     /* Button 1,2,3 port clock enable */
-    // KEY1: PC4, KEY2: PB10, KEY3: PC13
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOB, ENABLE);
 
     /* LED port clock enable */
-    // LED1, 2, 3, 4: PD2, PD3, PD4, PD7
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
 
     /* USART1 clock enable */
@@ -59,19 +51,17 @@ void GPIO_Configure(void)
     // TODO: Initialize the GPIO pins using the structure 'GPIO_InitTypeDef' and the function 'GPIO_Init'
 
     /* Button 1,2,3 pin setting */
-    // KEY1: PC4, KEY2: PB10, KEY3: PC13
-    // Input with pull-down
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
 
     /* LED pin setting*/
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_7;
@@ -80,18 +70,17 @@ void GPIO_Configure(void)
     GPIO_Init(GPIOD, &GPIO_InitStructure);
 
     /* UART pin setting */
-    // TX: PA9
-    // Alternate function output Push-pull
+    // TX
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-    // RX: PA10
-    // Input with pull-down
+    // RX
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+    GPIO_InitStructure.GPIO_Mode |= GPIO_Mode_IPU;
+
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
@@ -111,7 +100,6 @@ void EXTI_Configure(void)
     EXTI_Init(&EXTI_InitStructure);
 
     /* Button 2 */
-    // KEY2: PB10
     GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource10);
     EXTI_InitStructure.EXTI_Line = EXTI_Line10;
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
@@ -120,7 +108,6 @@ void EXTI_Configure(void)
     EXTI_Init(&EXTI_InitStructure);
 
     /* Button 3 */
-    // KEY3: PC13
     GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource13);
     EXTI_InitStructure.EXTI_Line = EXTI_Line13;
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
@@ -139,7 +126,6 @@ void USART1_Init(void)
     USART_Cmd(USART1, ENABLE);
 
     // TODO: Initialize the USART using the structure 'USART_InitTypeDef' and the function 'USART_Init'
-    // Baud Rate: 9600, Word Length: 8bit, Stop Bit: 1bit, Parity: None, Hardware flow control: None
     USART1_InitStructure.USART_BaudRate = 9600;
     USART1_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART1_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -158,12 +144,13 @@ void NVIC_Configure(void)
     NVIC_InitTypeDef NVIC_InitStructure;
 
     // TODO: fill the arg you want
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+    // 선점을 위해 그룹 1이상 사용
+
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 
     // TODO: Initialize the NVIC using the structure 'NVIC_InitTypeDef' and the function 'NVIC_Init'
 
     // Button1
-    // KEY1: PC4
     NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
@@ -171,14 +158,6 @@ void NVIC_Configure(void)
     NVIC_Init(&NVIC_InitStructure);
 
     // Button2,3
-    // KEY2: PB10
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-
-    // KEY3: PC13
     NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
@@ -189,8 +168,8 @@ void NVIC_Configure(void)
     // 'NVIC_EnableIRQ' is only required for USART setting
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; // TODO
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;        // TODO
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 }
@@ -226,7 +205,6 @@ void EXTI15_10_IRQHandler(void)
         if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_10) == Bit_RESET)
         {
             // TODO implement
-            // KEY2: PB10
             mode = 1;
         }
         EXTI_ClearITPendingBit(EXTI_Line10);
@@ -236,23 +214,19 @@ void EXTI15_10_IRQHandler(void)
         if (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13) == Bit_RESET)
         {
             // TODO implement
-            // KEY3: PC13
-            sending = 1;
+            usart_signal = 1;
         }
         EXTI_ClearITPendingBit(EXTI_Line13);
     }
 }
 
 // TODO: Button 1 interrupt handler implement, referent above function
-
-void EXIT4_IRQHandler(void)
+void EXTI4_IRQHandler(void)
 {
     if (EXTI_GetITStatus(EXTI_Line4) != RESET)
     {
         if (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_4) == Bit_RESET)
         {
-            // TODO implement
-            // KEY1: PC4
             mode = 0;
         }
         EXTI_ClearITPendingBit(EXTI_Line4);
@@ -290,49 +264,51 @@ int main(void)
 
     NVIC_Configure();
 
-    int i = 0;
-    char msg[] = "TEAM02.\r\n";
-
+    int led = 0;
+    char *msg = "TEAM02.\r\n";
     while (1)
     {
-        // Turn off all LEDs
-        GPIO_SetBits(GPIOD, GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_7);
-        Delay();
-
         // TODO: implement
-        if (i == 0)
-        { // LED1: PD2 ON
+        if (mode == 0)
+        {
+            led = (led + 1) % 4;
+        }
+        else if (mode == 1)
+        {
+            if (led == 0)
+            {
+                led = 4;
+            }
+            led = (led - 1) % 4;
+        }
+
+        // Turn off all led
+        GPIO_SetBits(GPIOD, GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_7);
+        // Turn on the led
+        if (led == 0)
+        {
             GPIO_ResetBits(GPIOD, GPIO_Pin_2);
         }
-        else if (i == 1)
-        { // LED2: PD3 ON
+        else if (led == 1)
+        {
             GPIO_ResetBits(GPIOD, GPIO_Pin_3);
         }
-        else if (i == 2)
-        { // LED3: PD4 ON
+        else if (led == 2)
+        {
             GPIO_ResetBits(GPIOD, GPIO_Pin_4);
         }
-        else if (i == 3)
-        { // LED4: PD7 ON
+        else if (led == 3)
+        {
             GPIO_ResetBits(GPIOD, GPIO_Pin_7);
         }
 
-        if (mode == 0)
+        if (usart_signal == 1)
         {
-            i = (i + 1) % 4;
-        }
-        else
-        {
-            i = (i - 1 + 4) % 4;
-        }
-
-        if (sending)
-        {
-            for (i = 0; i < sizeof(msg); i++)
+            for (int i = 0; i < 9; i++)
             {
                 sendDataUART1(msg[i]);
             }
-            sending = 0;
+            usart_signal = 0;
         }
 
         // Delay
