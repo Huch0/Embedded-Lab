@@ -20,6 +20,7 @@ void RCC_Configure(void)
 
     /* USART1, USART2 TX/RX port clock enable */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    //RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
 
     /* USART1, USART2 clock enable */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
@@ -69,7 +70,7 @@ void USART1_Init(void)
 
     // TODO: Initialize the USART using the structure 'USART_InitTypeDef' and the function 'USART_Init'
     USART1_InitStructure.USART_BaudRate = 9600;
-    USART1_InitStructure.USART_StopBits = USART_StopBits_1_5;
+    USART1_InitStructure.USART_StopBits = USART_StopBits_1;
     USART1_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART1_InitStructure.USART_Parity = USART_Parity_No;
     USART1_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
@@ -89,7 +90,7 @@ void USART2_Init(void)
 
     // TODO: Initialize the USART using the structure 'USART_InitTypeDef' and the function 'USART_Init'
     USART2_InitStructure.USART_BaudRate = 9600;
-    USART2_InitStructure.USART_StopBits = USART_StopBits_1_5;
+    USART2_InitStructure.USART_StopBits = USART_StopBits_1;
     USART2_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART2_InitStructure.USART_Parity = USART_Parity_No;
     USART2_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
@@ -136,7 +137,8 @@ void USART1_IRQHandler()
         word = USART_ReceiveData(USART1);
 
         // TODO implement ???
-        while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+        //while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+        while ((USART1->SR & USART_SR_TXE) == 0);
         USART_SendData(USART2, word);
 
         // clear 'Read data register not empty' flag
@@ -153,7 +155,8 @@ void USART2_IRQHandler()
         word = USART_ReceiveData(USART2);
 
         // TODO implement
-        while (USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET);
+        //while (USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET);
+        while ((USART2->SR & USART_SR_TXE) == 0);
         USART_SendData(USART1, word);
 
         // clear 'Read data register not empty' flag
