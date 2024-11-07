@@ -34,10 +34,10 @@ void GPIO_Configure(void)
     GPIO_InitTypeDef GPIO_ADC;
 
     // Initialize the GPIO pins using the structure 'GPIO_InitTypeDef' and the function 'GPIO_Init'
-    GPIO_ADC.GPIO_Pin = GPIO_Pin_1;
+    GPIO_ADC.GPIO_Pin = GPIO_Pin_0;
     GPIO_ADC.GPIO_Mode = GPIO_Mode_AIN;
     GPIO_ADC.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOB, &GPIO_ADC); // PB1: ADC_IN1
+    GPIO_Init(GPIOB, &GPIO_ADC); // PB0: ADC_IN1
 }
 
 void NVIC_Configure(void)
