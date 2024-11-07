@@ -17,19 +17,27 @@ uint16_t DeviceCode;
 static void LCD_WR_REG(uint16_t LCD_Reg)
 {
 	// TODO implement using GPIO_ResetBits/GPIO_SetBits
-	
+	GPIO_ResetBits(GPIOD, GPIO_Pin_13); // PD13: LCD_RS(0);
+	GPIO_ResetBits(GPIOC, GPIO_Pin_8);	// PC8: LCD_CS(0);
+	GPIO_ResetBits(GPIOB, GPIO_Pin_14); // PB14: LCD_WR(0);
+
 	GPIO_Write(GPIOE, LCD_Reg);
 	// TODO implement using GPIO_ResetBits/GPIO_SetBits
-	
+	GPIO_SetBits(GPIOC, GPIO_Pin_8);  // PC8: LCD_CS(1);
+	GPIO_SetBits(GPIOB, GPIO_Pin_14); // PD14: LCD_WR(1);
 }
 
 static void LCD_WR_DATA(uint16_t LCD_Data)
 {
 	// TODO implement using GPIO_ResetBits/GPIO_SetBits
-	
+	GPIO_SetBits(GPIOD, GPIO_Pin_13);	// PD13: LCD_RS(1);
+	GPIO_ResetBits(GPIOC, GPIO_Pin_8);	// PC8: LCD_CS(0);
+	GPIO_ResetBits(GPIOB, GPIO_Pin_14); // PB14: LCD_WR(0);
+
 	GPIO_Write(GPIOE, LCD_Data);
 	// TODO implement using GPIO_ResetBits/GPIO_SetBits
-	
+	GPIO_SetBits(GPIOC, GPIO_Pin_8);  // PC8: LCD_CS(1);
+	GPIO_SetBits(GPIOB, GPIO_Pin_14); // PD14: LCD_WR(1);
 }
 
 static uint16_t LCD_ReadReg(uint16_t LCD_Reg)
@@ -45,8 +53,8 @@ static uint16_t LCD_ReadReg(uint16_t LCD_Reg)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 
-	GPIO_ResetBits(GPIOC, GPIO_Pin_8);  // LCD_CS(0);
-	GPIO_SetBits(GPIOD, GPIO_Pin_13);   // LCD_RS(1);
+	GPIO_ResetBits(GPIOC, GPIO_Pin_8);	// LCD_CS(0);
+	GPIO_SetBits(GPIOD, GPIO_Pin_13);	// LCD_RS(1);
 	GPIO_ResetBits(GPIOD, GPIO_Pin_15); // LCD_RD(0);
 	temp = GPIO_ReadInputData(GPIOE);
 	GPIO_SetBits(GPIOD, GPIO_Pin_15); // LCD_RD(1);
@@ -148,7 +156,7 @@ void LCD_Init(void)
 		LCD_WriteReg(0x000c, 0x0001);
 		LCD_WriteReg(0x000d, 0x0000);
 		LCD_WriteReg(0x000f, 0x0000);
-		//Power On sequence //
+		// Power On sequence //
 		LCD_WriteReg(0x0010, 0x0000);
 		LCD_WriteReg(0x0011, 0x0007);
 		LCD_WriteReg(0x0012, 0x0000);
@@ -291,12 +299,12 @@ void LCD_SetCursor(u16 Xpos, u16 Ypos)
 void LCD_WindowMax(unsigned int x, unsigned int y, unsigned int x_end,
 				   unsigned int y_end)
 {
-        LCD_WriteReg(0x50, x);
-        LCD_WriteReg(0x51, x_end);
-        LCD_WriteReg(0x52, y);
-        LCD_WriteReg(0x53, y_end);
-        
-        LCD_SetCursor(x, y);
+	LCD_WriteReg(0x50, x);
+	LCD_WriteReg(0x51, x_end);
+	LCD_WriteReg(0x52, y);
+	LCD_WriteReg(0x53, y_end);
+
+	LCD_SetCursor(x, y);
 }
 
 void LCD_DrawPoint(uint16_t xsta, uint16_t ysta)
