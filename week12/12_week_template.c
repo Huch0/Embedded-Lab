@@ -36,9 +36,9 @@ int main()
     {
         // Todo: 조도센서 값 확인후 일정 밝기 이상일 경우(핸드폰 라이트 비췄을때)에 배경 색 변경
         if ((uint32_t)ADC_Value[0] >= LUX_THRESHOLD)
-            LCD_Clear(WHITE);
-        else
             LCD_Clear(GRAY);
+        else
+            LCD_Clear(WHITE);
         // sensor value
         LCD_ShowNum(LCD_LUX_VAL_X, LCD_LUX_VAL_Y, ADC_Value[0], 4, BLUE, WHITE);
     }
@@ -108,6 +108,7 @@ void DMA_Configure(void)
 {
     DMA_InitTypeDef DMA_Instructure;
 
+    DMA_DeInit(DMA1_Channel1);
     DMA_Instructure.DMA_PeripheralBaseAddr = (uint32_t)&ADC1->DR; // 어디에 있는걸 가져올지
     DMA_Instructure.DMA_MemoryBaseAddr = (uint32_t)&ADC_Value[0]; // 가져온걸 어디에 쓸지
     DMA_Instructure.DMA_DIR = DMA_DIR_PeripheralSRC;
@@ -121,5 +122,5 @@ void DMA_Configure(void)
     DMA_Instructure.DMA_M2M = DMA_M2M_Disable;
     DMA_Init(DMA1_Channel1, &DMA_Instructure);
 
-    DMA_Cmd(DMA_Cmd, ENABLE);
+    DMA_Cmd(DMA1_Channel1, ENABLE);
 }

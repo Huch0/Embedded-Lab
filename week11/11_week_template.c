@@ -103,6 +103,8 @@ void RccInit(void)
 {
     // Todo: Init LED, motor Port, Timer
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); //TIM2
     // LED1: PD2, LED2: PD3
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
     // PWM motor: PB0
@@ -122,6 +124,12 @@ void GpioInit(void)
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOD, &GPIO_InitStructure);
+
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0; // TIM2
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     // PWM motor Init
     // Todo
@@ -182,6 +190,13 @@ void NvicInit(void)
     NVIC_InitTypeDef NVIC_InitStructure;
 
     NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    NVIC_EnableIRQ(TIM3_IRQn);
+    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
