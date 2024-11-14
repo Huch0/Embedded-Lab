@@ -13,10 +13,10 @@
 #define LCD_STATUS_X 20
 #define LCD_STATUS_Y 70
 
-#define LCD_BUTTON_X    30
-#define LCD_BUTTON_Y    100
-#define LCD_BUTTON_W    50
-#define LCD_BUTTON_H    50
+#define LCD_BUTTON_X 30
+#define LCD_BUTTON_Y 100
+#define LCD_BUTTON_W 50
+#define LCD_BUTTON_H 50
 
 void Init(void);
 void RccInit(void);
@@ -25,152 +25,263 @@ void TIM_Configure(void);
 void NvicInit(void);
 void ledToggle(int num);
 
-const int color[12] = {WHITE,CYAN,BLUE,RED,MAGENTA,LGRAY,GREEN,YELLOW,BROWN,BRRED,GRAY};
+const int color[12] = {WHITE, CYAN, BLUE, RED, MAGENTA, LGRAY, GREEN, YELLOW, BROWN, BRRED, GRAY};
 
 // timer counter
 int timer_counter = 0;
 // led on/off
 char ledOn;
 // motor set
-TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
-TIM_OCInitTypeDef  TIM_OCInitStructure;
+TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+TIM_OCInitTypeDef TIM_OCInitStructure;
 // motor angle
 int motorAngle = 0;
 int motorDir = 0;
 
-int main(){
+int main()
+{
     uint16_t pos_x, pos_y;
     uint16_t pix_x, pix_y;
 
     Init();
 
     ledOn = 0;
-        
+
     LCD_Clear(WHITE);
 
     // team name
-    LCD_ShowString(LCD_TEAM_NAME_X,LCD_TEAM_NAME_Y, "THU_00", BLUE, WHITE);
+    LCD_ShowString(LCD_TEAM_NAME_X, LCD_TEAM_NAME_Y, "THU_02", BLUE, WHITE);
     // button
-    LCD_DrawRectangle(LCD_BUTTON_X, LCD_BUTTON_Y, LCD_BUTTON_X+LCD_BUTTON_W, LCD_BUTTON_Y+LCD_BUTTON_H);
-    LCD_ShowString(LCD_BUTTON_X+(LCD_BUTTON_W/2), LCD_BUTTON_Y+(LCD_BUTTON_H/2), "BUT", RED, WHITE);
+    LCD_DrawRectangle(LCD_BUTTON_X, LCD_BUTTON_Y, LCD_BUTTON_X + LCD_BUTTON_W, LCD_BUTTON_Y + LCD_BUTTON_H);
+    LCD_ShowString(LCD_BUTTON_X + (LCD_BUTTON_W / 2), LCD_BUTTON_Y + (LCD_BUTTON_H / 2), "BUT", RED, WHITE);
 
-    while(1){
-      if (ledOn == 0) {
-        LCD_ShowString(LCD_STATUS_X, LCD_STATUS_Y, "OFF", RED, WHITE);
-        motorDir = 0;
-      } else {
-        LCD_ShowString(LCD_STATUS_X, LCD_STATUS_Y, "ON ", RED, WHITE);
-        motorDir = 1;
-      }
-    	// get touch coordinate
-    	Touch_GetXY(&pos_x, &pos_y, 1);
-    	Convert_Pos(pos_x, pos_y, &pix_x, &pix_y);
-        
+    while (1)
+    {
+        if (ledOn == 0)
+        {
+            LCD_ShowString(LCD_STATUS_X, LCD_STATUS_Y, "OFF", RED, WHITE);
+            motorDir = 0;
+        }
+        else
+        {
+            LCD_ShowString(LCD_STATUS_X, LCD_STATUS_Y, "ON ", RED, WHITE);
+            motorDir = 1;
+        }
+        // get touch coordinate
+        Touch_GetXY(&pos_x, &pos_y, 1);
+        Convert_Pos(pos_x, pos_y, &pix_x, &pix_y);
+
         if (
             pix_x >= LCD_BUTTON_X &&
             pix_x <= LCD_BUTTON_X + LCD_BUTTON_W &&
             pix_y >= LCD_BUTTON_Y &&
-            pix_x <= LCD_BUTTON_Y + LCD_BUTTON_H
-        ) {
+            pix_x <= LCD_BUTTON_Y + LCD_BUTTON_H)
+        {
             ledOn = !ledOn;
         }
     }
 }
 
-void Init(void) {
-	SystemInit();
-	RccInit();
-	GpioInit();
-  TIM_Configure();
-	NvicInit();
+void Init(void)
+{
+    SystemInit();
+    RccInit();
+    GpioInit();
+    TIM_Configure();
+    NvicInit();
 
-	LCD_Init();
-	Touch_Configuration();
-	Touch_Adjust();
+    LCD_Init();
+    Touch_Configuration();
+    Touch_Adjust();
 
-  GPIO_SetBits(GPIOD, GPIO_Pin_2);
-  GPIO_SetBits(GPIOD, GPIO_Pin_3);
+    GPIO_SetBits(GPIOD, GPIO_Pin_2);
+    GPIO_SetBits(GPIOD, GPIO_Pin_3);
 }
 
-void RccInit(void) {
+void RccInit(void)
+{
     // Todo: Init LED, motor Port, Timer
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    // LED1: PD2, LED2: PD3
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
+    // PWM motor: PB0
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    // TIM2
+    RCC_APB2PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+    // TIM3
+    RCC_APB2PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 }
 
-void GpioInit(void) {
+void GpioInit(void)
+{
     GPIO_InitTypeDef GPIO_InitStructure;
     // LED 1, LED2 Init
     // Todo
-    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOD, &GPIO_InitStructure);
+
     // PWM motor Init
     // Todo
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
 void TIM_Configure(void)
 {
     // led toggle timer
     TIM_TimeBaseInitTypeDef TIM2_InitStructure;
-    
-    TIM2_InitStructure.TIM_Period = ???;
-    TIM2_InitStructure.TIM_Prescaler = ???;
-    TIM2_InitStructure.TIM_ClockDivision = ???;
-    TIM2_InitStructure.TIM_CounterMode = ???;
-    
+
+    // period: 1s
+    // frequency: 1Hz
+    uint16_t prescale1 = (uint16_t)(SystemCoreClock / 7200);
+
+    TIM2_InitStructure.TIM_Period = 10000;
+    TIM2_InitStructure.TIM_Prescaler = prescale1;
+    TIM2_InitStructure.TIM_ClockDivision = 0;
+    TIM2_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+
     TIM_TimeBaseInit(TIM2, &TIM2_InitStructure);
     TIM_ARRPreloadConfig(TIM2, ENABLE);
     TIM_Cmd(TIM2, ENABLE);
     TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-    
+
     // motor pwm timer
     TIM_TimeBaseInitTypeDef TIM3_InitStructure;
     TIM_OCInitTypeDef TIM_OCInitStructure;
-    
-    uint16_t prescale = (uint16_t) (SystemCoreClock / ???);
-    
-    TIM3_InitStructure.TIM_Period = ???; 
+
+    // period: 20ms
+    // frequency: 50Hz
+    // 1 / 72,000,000 * 72,000 * 20 = 20ms
+    uint16_t prescale = (uint16_t)(SystemCoreClock / 72000);
+
+    TIM3_InitStructure.TIM_Period = 20;
     TIM3_InitStructure.TIM_Prescaler = prescale;
     TIM3_InitStructure.TIM_ClockDivision = 0;
     TIM3_InitStructure.TIM_CounterMode = TIM_CounterMode_Down;
-    
+
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = ???;
-    
+    TIM_OCInitStructure.TIM_Pulse = 1000;
+
     TIM_OC3Init(TIM3, &TIM_OCInitStructure);
-    
+
     TIM_TimeBaseInit(TIM3, &TIM3_InitStructure);
     TIM_OC3PreloadConfig(TIM3, TIM_OCPreload_Disable);
     TIM_ARRPreloadConfig(TIM3, ENABLE);
     TIM_Cmd(TIM3, ENABLE);
 }
 
-void NvicInit(void){
+void NvicInit(void)
+{
     NVIC_InitTypeDef NVIC_InitStructure;
 
-    NVIC_InitStructure.NVIC_IRQChannel = ???;
+    NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 }
 
-void moveMotor(){
+void moveMotor()
+{
     // Todo: Adjust motorAngle
 
+    TIM_OCInitTypeDef TIM_OCInitStructure;
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_Pulse = motorAngle;
 
-    TIM_OC3Init(TIM3, &TIM_OCInitStructure);    
+    TIM_OC3Init(TIM3, &TIM_OCInitStructure);
 }
 
-void ???_IRQHandler(void) {
-    if(TIM_GetITStatus(???, TIM_IT_Update) != RESET) {
+void TIM2_IRQHandler(void)
+{
+    if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
+    {
         timer_counter++;
         moveMotor();
-        // Todo: LED toggle  
-        TIM_ClearITPendingBit(???, TIM_IT_Update);
+        // Todo: LED toggle
+
+        if (ledOn == 1)
+        {
+            // LED1 toggle
+            if (timer_counter % 2 == 0)
+            {
+                ledToggle(1); // LED1 toggle
+            }
+            // LED2 toggle
+            if (timer_counter % 5 == 0)
+            {
+                ledToggle(2); // LED2 toggle
+            }
+
+            timer_counter %= 10;
+
+            // forward motor
+            motorAngle += 100;
+            if (motorAngle > 2000)
+            {
+                motorAngle = 1000;
+            }
+        }
+        else
+        {
+            ledToggle(0); // LED toggle OFF
+
+            // reverse motor
+            motorAngle -= 100;
+            if (motorAngle < 1000)
+            {
+                motorAngle = 2000;
+            }
+        }
+
+        TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+    }
+}
+
+void ledToggle(int num)
+{
+    // LED toggle OFF
+    if (num == 0)
+    {
+        GPIO_SetBits(GPIOD, GPIO_Pin_2);
+        GPIO_SetBits(GPIOD, GPIO_Pin_3);
+    }
+    // LED 1 toggle
+    else if (num == 1)
+    {
+        // Check HIGH/LOW
+        if (GPIO_ReadOutputDataBit(GPIOD, GPIO_Pin_2) == Bit_SET)
+        {
+            // PD2 is HIGH, set it to LOW
+            GPIO_ResetBits(GPIOD, GPIO_Pin_2);
+        }
+        else
+        {
+            // PD2 is LOW, set it to HIGH
+            GPIO_SetBits(GPIOD, GPIO_Pin_2);
+        }
+    }
+    // LED 2 toggle
+    else if (num == 2)
+    {
+        // Check HIGH/LOW
+        if (GPIO_ReadOutputDataBit(GPIOD, GPIO_Pin_3) == Bit_SET)
+        {
+            // PD2 is HIGH, set it to LOW
+            GPIO_ResetBits(GPIOD, GPIO_Pin_3);
+        }
+        else
+        {
+            // PD2 is LOW, set it to HIGH
+            GPIO_SetBits(GPIOD, GPIO_Pin_3);
+        }
     }
 }
