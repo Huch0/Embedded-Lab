@@ -29,6 +29,7 @@ const int color[12] = {WHITE, CYAN, BLUE, RED, MAGENTA, LGRAY, GREEN, YELLOW, BR
 
 // timer counter
 int timer_counter = 0;
+int led2_flag = 0;
 // led on/off
 char ledOn;
 // motor set
@@ -137,7 +138,7 @@ void TIM_Configure(void)
 
     // period: 1s
     // frequency: 1Hz
-    uint16_t prescale1 = (uint16_t)(SystemCoreClock / 7200);
+    uint16_t prescale1 = (uint16_t)(SystemCoreClock / 10000);
 
     TIM2_InitStructure.TIM_Period = 10000;
     TIM2_InitStructure.TIM_Prescaler = prescale1;
@@ -156,9 +157,9 @@ void TIM_Configure(void)
     // period: 20ms
     // frequency: 50Hz
     // 1 / 72,000,000 * 72,000 * 20 = 20ms
-    uint16_t prescale = (uint16_t)(SystemCoreClock / 72000);
+    uint16_t prescale = (uint16_t)(SystemCoreClock / 1000000);
 
-    TIM3_InitStructure.TIM_Period = 20;
+    TIM3_InitStructure.TIM_Period = 20000;
     TIM3_InitStructure.TIM_Prescaler = prescale;
     TIM3_InitStructure.TIM_ClockDivision = 0;
     TIM3_InitStructure.TIM_CounterMode = TIM_CounterMode_Down;
@@ -166,7 +167,7 @@ void TIM_Configure(void)
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = 1000;
+    TIM_OCInitStructure.TIM_Pulse = 2000;
 
     TIM_OC3Init(TIM3, &TIM_OCInitStructure);
 
@@ -210,36 +211,41 @@ void TIM2_IRQHandler(void)
 
         if (ledOn == 1)
         {
-            // LED1 toggle
             if (timer_counter % 2 == 0)
             {
-                ledToggle(1); // LED1 toggle
+                ledToggle(1); // LED1 ON
             }
-            // LED2 toggle
+            else
+            {
+                ledToggle(2); // LED1 OFF
+            }
             if (timer_counter % 5 == 0)
             {
-                ledToggle(2); // LED2 toggle
+                if (led2_flag == 0)
+                {
+                    ledToggle(3); // LED2 ON
+                    led2_flag = 1;
+                }
+                else
+                {
+                    ledToggle(4); // LED2 OFF
+                    led2_flag = 0;
+                }
             }
-
             timer_counter %= 10;
 
-            // forward motor
             motorAngle += 100;
             if (motorAngle > 2000)
-            {
                 motorAngle = 1000;
-            }
         }
         else
         {
-            ledToggle(0); // LED toggle OFF
+            ledToggle(0); // LED OFF
+            led2_flag = 0;
 
-            // reverse motor
             motorAngle -= 100;
             if (motorAngle < 1000)
-            {
                 motorAngle = 2000;
-            }
         }
 
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
@@ -254,34 +260,16 @@ void ledToggle(int num)
         GPIO_SetBits(GPIOD, GPIO_Pin_2);
         GPIO_SetBits(GPIOD, GPIO_Pin_3);
     }
-    // LED 1 toggle
+    // LED 1 ON
     else if (num == 1)
-    {
-        // Check HIGH/LOW
-        if (GPIO_ReadOutputDataBit(GPIOD, GPIO_Pin_2) == Bit_SET)
-        {
-            // PD2 is HIGH, set it to LOW
-            GPIO_ResetBits(GPIOD, GPIO_Pin_2);
-        }
-        else
-        {
-            // PD2 is LOW, set it to HIGH
-            GPIO_SetBits(GPIOD, GPIO_Pin_2);
-        }
-    }
-    // LED 2 toggle
+        GPIO_ResetBits(GPIOD, GPIO_Pin_2);
+    // LED 1 OFF
     else if (num == 2)
-    {
-        // Check HIGH/LOW
-        if (GPIO_ReadOutputDataBit(GPIOD, GPIO_Pin_3) == Bit_SET)
-        {
-            // PD2 is HIGH, set it to LOW
-            GPIO_ResetBits(GPIOD, GPIO_Pin_3);
-        }
-        else
-        {
-            // PD2 is LOW, set it to HIGH
-            GPIO_SetBits(GPIOD, GPIO_Pin_3);
-        }
-    }
+        GPIO_SetBits(GPIOD, GPIO_Pin_2);
+    // LED 2 ON
+    else if (num == 3)
+        GPIO_ResetBits(GPIOD, GPIO_Pin_3);
+    // LED 2 OFF
+    else if (num == 4)
+        GPIO_SetBits(GPIOD, GPIO_Pin_3);
 }
