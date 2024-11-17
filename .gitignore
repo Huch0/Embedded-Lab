@@ -4,3 +4,5 @@
 *.MOV
 
 tmp*
+
+.vscode
