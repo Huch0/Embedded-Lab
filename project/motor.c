@@ -8,14 +8,14 @@ void motor_init(void)
 
 void motor_rcc_configure(void)
 {
-    RCC_APB2PeriphClockCmd(MOTOR_FL1_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(MOTOR_FL2_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(MOTOR_FR1_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(MOTOR_FR2_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(MOTOR_BL1_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(MOTOR_BL2_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(MOTOR_BR1_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(MOTOR_BR2_PORT, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_FL1_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_FL2_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_FR1_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_FR2_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_BL1_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_BL2_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_BR1_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(MOTOR_BR2_RCC, ENABLE);
 }
 
 void motor_gpio_configure(void)

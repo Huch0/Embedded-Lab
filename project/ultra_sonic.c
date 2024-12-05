@@ -10,16 +10,16 @@ void ultra_sonic_init(void)
 
 void ultra_sonic_rcc_configure(void)
 {
-    RCC_APB2PeriphClockCmd(US_FRONT_ECHO_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(US_FRONT_TRIG_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(US_LEFT_ECHO_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(US_LEFT_TRIG_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(US_RIGHT_ECHO_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(US_RIGHT_TRIG_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(US_BACK_ECHO_PORT, ENABLE);
-    RCC_APB2PeriphClockCmd(US_BACK_TRIG_PORT, ENABLE);
+    RCC_APB2PeriphClockCmd(US_FRONT_TRIG_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(US_FRONT_ECHO_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(US_LEFT_TRIG_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(US_LEFT_ECHO_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(US_RIGHT_TRIG_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(US_RIGHT_ECHO_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(US_BACK_TRIG_RCC, ENABLE);
+    RCC_APB2PeriphClockCmd(US_BACK_ECHO_RCC, ENABLE);
 
-    RCC_APB1PeriphClockCmd(US_TIMER, ENABLE);
+    RCC_APB1PeriphClockCmd(US_TIMER_RCC, ENABLE);
 }
 
 void ultra_sonic_gpio_configure(void)
